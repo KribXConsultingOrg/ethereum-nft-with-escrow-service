@@ -83,6 +83,8 @@ contract Pupper is ERC721, Ownable {
         
     }
 
+
+    //Internal function to transfer ownership of the NFT on a successful sale
     function transferPupper(uint _tokenId, address newOwner) private {
 
         require(ownerOf(_tokenId)==msg.sender, "This wallet is not the owner of this NFT");
@@ -95,6 +97,7 @@ contract Pupper is ERC721, Ownable {
 
     }
 
+    //user can put their NFT for sale using this
     function enableSale(uint _tokenId, uint _salePrice) public  contractNotPaused{
         require(ownerOf(_tokenId)==msg.sender,"This wallet doesn't own this wallet");
         require(allpuppers[_tokenId]._enableBreeding==false, "You can't sell while breeding is enabled");
@@ -108,6 +111,8 @@ contract Pupper is ERC721, Ownable {
 
 
     }
+
+    //To disable sale of NFT if no one has put money in escrow for the purchase.
     function disableSale(uint _tokenId) public {
 
         require(ownerOf(_tokenId)==msg.sender,"Wallet is not the owner of this NFT");
@@ -122,7 +127,7 @@ contract Pupper is ERC721, Ownable {
     }
 
     
-
+    //To open up your Dog for breeding
     function enableBreeding(uint _tokenId, uint _breedingPrice) public contractNotPaused{
         require(ownerOf(_tokenId)==msg.sender,"This wallet doesn't own this wallet");
         require(allpuppers[_tokenId]._enableSale==false, "You can't breed while sale is enabled");
@@ -137,6 +142,7 @@ contract Pupper is ERC721, Ownable {
 
     }
 
+    //To disable breeding if no one has put money in escrow for the service.
     function disableBreeding(uint _tokenId) public{
         require(ownerOf(_tokenId)==msg.sender,"Wallet is not the owner of this NFT");
         require(escrows[_tokenId]._amount ==0, "Deal is currently in Escrow");
@@ -149,7 +155,7 @@ contract Pupper is ERC721, Ownable {
         allpuppers[_tokenId]._breedingPrice =0;
 
     }
-
+    //Struct to define attributes of an escrow
     struct escrow{
             uint _amount;
             address _sender;
@@ -161,6 +167,7 @@ contract Pupper is ERC721, Ownable {
         }
     mapping(uint=>escrow) public escrows;
 
+    //Purchase any NFT up for sale, payment will be held in an escrow till both parties approve the transaction
     function buy(uint _tokenId) public payable contractNotPaused{
         require(allpuppers[_tokenId]._enableSale==true);
         require(msg.value>=allpuppers[_tokenId]._salePrice);
@@ -171,6 +178,7 @@ contract Pupper is ERC721, Ownable {
 
     }
 
+    //Book a breeding session, payment will be held in an escrow till both parties approve the transaction
     function breed(uint _tokenId) public payable contractNotPaused{
         require(allpuppers[_tokenId]._enableBreeding==true);
         require(msg.value>=allpuppers[_tokenId]._breedingPrice);
@@ -181,6 +189,7 @@ contract Pupper is ERC721, Ownable {
 
     }
 
+    //Both parties approve sale/breeding transactions for payment to be released to the owner
     function approveTransaction(uint _tokenId) public {
         require(msg.sender == escrows[_tokenId]._sender || msg.sender == escrows[_tokenId]._receiver);
         require(escrows[_tokenId]._processed==false);
@@ -194,6 +203,7 @@ contract Pupper is ERC721, Ownable {
 
     }
 
+    //After both parties approve the transaction owner can withdraw his payment from the escrow
     function processEscrow(uint _tokenId) public{
         require(msg.sender==ownerOf(_tokenId));
         require(escrows[_tokenId]._senderApproval == true && escrows[_tokenId]._receiverApproval == true && escrows[_tokenId]._processed == false);
@@ -220,6 +230,8 @@ contract Pupper is ERC721, Ownable {
 
 
     }
+
+    //Incase anyone wants to cancel the transaction incase both parties have no objection
     function refundEscrow(uint _tokenId) public {
 
         require(escrows[_tokenId]._senderApproval == false && escrows[_tokenId]._receiverApproval == false && escrows[_tokenId]._processed == false );
@@ -230,12 +242,13 @@ contract Pupper is ERC721, Ownable {
 
         }
     }
+    //Contract owner can set his commission % on transactions, denominator is 1000
     function setFee(uint _devFee) public onlyOwner {
 
         transactionFee = _devFee;
 
     }
-    //Owner can withdraw his commission 
+    //Contract Owner can withdraw his commission from transactions
     function withdrawDevCommission() public onlyOwner{
         address payable receiver = payable(owner());
         require(commission>0);
