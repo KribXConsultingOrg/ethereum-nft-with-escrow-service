@@ -51,6 +51,7 @@ contract Pupper is ERC721, Ownable {
     mapping(uint => pupper) public allpuppers;
     mapping (string=>bool) public genomes;
 
+    //Function to get the index of the NFT in puppers mapping to wallet address
     function getIndex(uint _tokenId, address _address) private returns(uint){
         uint index;
 
@@ -64,7 +65,8 @@ contract Pupper is ERC721, Ownable {
         }
         return index;
     }
-
+    
+    //To mint your dogs NFT
     function createPupper(string memory pupperName, string memory _breed, 
     string memory sex, string memory genome, string memory 
     genomeLink, string memory base64) public contractNotPaused{
